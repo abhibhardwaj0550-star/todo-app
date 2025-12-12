@@ -37,29 +37,44 @@ export default function Login({ setIsAuthenticated }) {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const idToken = await result.user.getIdToken();
+const handleGoogleLogin = async () => {
+  try {
+    // 1️⃣ Sign in with Google popup
+    const result = await signInWithPopup(auth, provider);
 
-      const res = await axios.post(`${apiBaseUrl}/auth/google-login`, { idToken });
-      const data = res.data;
-
-      if (data?.user && data?.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.user.role);
-        localStorage.setItem("username", data.user.name);
-        setIsAuthenticated?.(true);
-
-        toast.success("Logged in with Google");
-        navigate(data.user.role === "admin" ? "/admin" : "/home");
-      } else {
-        toast.error("Google login failed");
-      }
-    } catch (err) {
-      toast.error("Google login failed");
+    if (!result.user) {
+      throw new Error("No user returned from Google popup");
     }
-  };
+
+    // 2️⃣ Force refresh ID token
+    const idToken = await result.user.getIdToken(true); // true = force refresh
+    console.log("ID Token:", idToken); // Debug: check that token is valid
+
+    // 3️⃣ Send token to backend
+    const res = await axios.post(`${apiBaseUrl}/auth/google-login`, { idToken });
+    console.log("Backend response:", res.data); // Debug: see exact response
+
+    const data = res.data;
+
+    // 4️⃣ Handle successful login
+    if (data?.user && data?.token) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("username", data.user.name);
+      setIsAuthenticated?.(true);
+
+      toast.success("Logged in with Google");
+      navigate(data.user.role === "admin" ? "/admin" : "/home");
+    } else {
+      toast.error("Google login failed: Invalid backend response");
+    }
+  } catch (err) {
+    // 5️⃣ Log full error for debugging
+    console.error("Google login error:", err.response?.data || err.message);
+    toast.error(`Google login failed: ${err.response?.data?.message || err.message}`);
+  }
+};
+
 
   return (
     <Auth
@@ -90,11 +105,13 @@ export default function Login({ setIsAuthenticated }) {
       <div className="flex justify-center mt-4">
         <button
           onClick={handleGoogleLogin}
-          className="w-full px-4 py-2 bg-red-500 text-white rounded hover:brightness-110"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-gray-700 border rounded-lg shadow hover:shadow-lg hover:scale-[1.02] transition duration-200"
         >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
           Login with Google
         </button>
       </div>
+
     </Auth>
   );
 }

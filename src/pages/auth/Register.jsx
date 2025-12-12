@@ -14,32 +14,35 @@ export default function Register({ setIsAuthenticated }) {
   const strongPasswordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-  const onSubmit = async (values) => {
-    try {
-      const response = await axios.post(`${apiBaseUrl}/auth/signup`, values);
-      console.log("Register response:", response.data);
+const onSubmit = async (values) => {
+  try {
+    const response = await axios.post(`${apiBaseUrl}/auth/signup`, values);
+    console.log("Register response:", response.data);
 
-      const token = response.data?.token;
+    const token = response.data?.token;
+    const name = response.data?.user?.name || values.name; // store the registered name
 
-      if (token) {
-        localStorage.setItem("token", token);
-        if (setIsAuthenticated) setIsAuthenticated(true);
-      }
-
-      toast.success(
-        response.data?.message || "User registered successfully!"
-      );
-
-      navigate("/home");
-    } catch (error) {
-      console.error("Register error:", error.response?.data || error.message);
-      const msg =
-        error.response?.data?.message ||
-        error.message ||
-        "Registration failed";
-      toast.error(msg);
+    if (token) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", name); // 🔥 store username
+      if (setIsAuthenticated) setIsAuthenticated(true);
     }
-  };
+
+    toast.success(
+      response.data?.message || "User registered successfully!"
+    );
+
+    navigate("/home");
+  } catch (error) {
+    console.error("Register error:", error.response?.data || error.message);
+    const msg =
+      error.response?.data?.message ||
+      error.message ||
+      "Registration failed";
+    toast.error(msg);
+  }
+};
+
 
   return (
     <Auth
