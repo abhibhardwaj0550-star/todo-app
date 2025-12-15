@@ -76,16 +76,15 @@ export default function Auth({
 
                 <div className="relative">
                   <input
-                    type={isPassword && !showPassword ? "password" : f.type}
+                    type={isPassword ? (showPassword ? "text" : "password") : f.type}
                     name={f.name}
                     placeholder={f.placeholder}
                     value={values[f.name] || ""}
                     onChange={handleChange}
-                    className={`w-full px-4 py-2 mt-1 rounded-lg border outline-none ${
-                      errors[f.name]
+                    className={`w-full px-4 py-2 mt-1 rounded-lg border outline-none ${errors[f.name]
                         ? "border-red-500 focus:ring-2 focus:ring-red-400"
                         : "border-slate-300 focus:ring-2 focus:ring-indigo-400"
-                    } ${isPassword ? "pr-10" : ""}`}
+                      } ${isPassword ? "pr-10" : ""}`}
                   />
 
                   {isPassword && (
