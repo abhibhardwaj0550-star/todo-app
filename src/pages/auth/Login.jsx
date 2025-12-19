@@ -37,43 +37,43 @@ export default function Login({ setIsAuthenticated }) {
     }
   };
 
-const handleGoogleLogin = async () => {
-  try {
-    // 1️⃣ Sign in with Google popup
-    const result = await signInWithPopup(auth, provider);
+  const handleGoogleLogin = async () => {
+    try {
+      // 1️⃣ Sign in with Google popup
+      const result = await signInWithPopup(auth, provider);
 
-    if (!result.user) {
-      throw new Error("No user returned from Google popup");
+      if (!result.user) {
+        throw new Error("No user returned from Google popup");
+      }
+
+      // 2️⃣ Force refresh ID token
+      const idToken = await result.user.getIdToken(true); // true = force refresh
+      console.log("ID Token:", idToken); // Debug: check that token is valid
+
+      // 3️⃣ Send token to backend
+      const res = await axios.post(`${apiBaseUrl}/auth/google-login`, { idToken });
+      console.log("Backend response:", res.data); // Debug: see exact response
+
+      const data = res.data;
+
+      // 4️⃣ Handle successful login
+      if (data?.user && data?.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.user.role);
+        localStorage.setItem("username", data.user.name);
+        setIsAuthenticated?.(true);
+
+        toast.success("Logged in with Google");
+        navigate(data.user.role === "admin" ? "/admin" : "/home");
+      } else {
+        toast.error("Google login failed: Invalid backend response");
+      }
+    } catch (err) {
+      // 5️⃣ Log full error for debugging
+      console.error("Google login error:", err.response?.data || err.message);
+      toast.error(`Google login failed: ${err.response?.data?.message || err.message}`);
     }
-
-    // 2️⃣ Force refresh ID token
-    const idToken = await result.user.getIdToken(true); // true = force refresh
-    console.log("ID Token:", idToken); // Debug: check that token is valid
-
-    // 3️⃣ Send token to backend
-    const res = await axios.post(`${apiBaseUrl}/auth/google-login`, { idToken });
-    console.log("Backend response:", res.data); // Debug: see exact response
-
-    const data = res.data;
-
-    // 4️⃣ Handle successful login
-    if (data?.user && data?.token) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.user.role);
-      localStorage.setItem("username", data.user.name);
-      setIsAuthenticated?.(true);
-
-      toast.success("Logged in with Google");
-      navigate(data.user.role === "admin" ? "/admin" : "/home");
-    } else {
-      toast.error("Google login failed: Invalid backend response");
-    }
-  } catch (err) {
-    // 5️⃣ Log full error for debugging
-    console.error("Google login error:", err.response?.data || err.message);
-    toast.error(`Google login failed: ${err.response?.data?.message || err.message}`);
-  }
-};
+  };
 
 
   return (
