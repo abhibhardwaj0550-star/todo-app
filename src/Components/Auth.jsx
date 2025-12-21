@@ -10,7 +10,7 @@ export default function Auth({
   onSubmit,
   showPassword,
   toggleShowPassword,
-  children, // ✅ for Google button or other custom content
+  children, 
 }) {
   const [values, setValues] = useState(
     fields.reduce((acc, f) => ({ ...acc, [f.name]: "" }), {})

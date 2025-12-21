@@ -39,18 +39,15 @@ export default function Login({ setIsAuthenticated }) {
 
   const handleGoogleLogin = async () => {
     try {
-      // 1️⃣ Sign in with Google popup
       const result = await signInWithPopup(auth, provider);
 
       if (!result.user) {
         throw new Error("No user returned from Google popup");
       }
 
-      // 2️⃣ Force refresh ID token
-      const idToken = await result.user.getIdToken(true); // true = force refresh
-      console.log("ID Token:", idToken); // Debug: check that token is valid
+      const idToken = await result.user.getIdToken(true);
+      console.log("ID Token:", idToken); 
 
-      // 3️⃣ Send token to backend
       const res = await axios.post(`${apiBaseUrl}/auth/google-login`, { idToken });
       console.log("Backend response:", res.data); // Debug: see exact response
 
@@ -69,7 +66,6 @@ export default function Login({ setIsAuthenticated }) {
         toast.error("Google login failed: Invalid backend response");
       }
     } catch (err) {
-      // 5️⃣ Log full error for debugging
       console.error("Google login error:", err.response?.data || err.message);
       toast.error(`Google login failed: ${err.response?.data?.message || err.message}`);
     }

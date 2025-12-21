@@ -1,11 +1,9 @@
-// src/pages/Forgot.jsx
 import React from "react";
 import Auth from "../../Components/Auth";
 
 export default function Forgot() {
   const onSubmit = (values) => {
     console.log("Send reset email", values);
-    // here you call your backend forgot-password API if you have one
   };
 
   return (
