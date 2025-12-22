@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Forgot from "./pages/auth/Forgot";
 import Reset from "./pages/auth/Reset";
 import Todo from "./pages/TodoList/Todo";
 import Home from "./pages/TodoList/Home";
+import Admin from "./pages/Admin/Admin.jsx";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Admin from "./pages/Admin/Admin.jsx";
 
 function PrivateRoute({ children, isAuthenticated }) {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
@@ -40,6 +42,7 @@ export default function App() {
             path="/login"
             element={<Login setIsAuthenticated={setIsAuthenticated} />}
           />
+
           <Route
             path="/register"
             element={<Register setIsAuthenticated={setIsAuthenticated} />}
@@ -66,10 +69,16 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute isAuthenticated={isAuthenticated}>
+                <Admin />
+              </PrivateRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/login" replace />} />
-
-          <Route path="/admin" element={<Admin />} />
-
         </Routes>
       </Router>
 

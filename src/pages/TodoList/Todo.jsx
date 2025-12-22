@@ -400,7 +400,7 @@ function Todo({ setIsAuthenticated }) {
 
   const doLogout = () => {
     localStorage.removeItem("token");
-     localStorage.removeItem("role");
+    localStorage.removeItem("role");
     localStorage.removeItem("username");
     if (setIsAuthenticated) {
       setIsAuthenticated(false);
@@ -434,7 +434,9 @@ function Todo({ setIsAuthenticated }) {
     >
       <Navbar onLogoutClick={handleLogoutClick} />
 
-      <div className="mx-3 container md:mx-auto my-5 rounded-xl p-5 min-h-[80vh] w-full md:w-2/3 lg:w-3/4 xl:w-4/5 bg-gradient-to-r from-sky-700/60 via-emerald-400/60 to-yellow-300/60">
+      <div className="mx-auto my-5 rounded-xl p-4 sm:p-5 min-h-[80vh]
+  w-full sm:max-w-[95%] md:max-w-3xl lg:max-w-5xl xl:max-w-6xl
+  bg-gradient-to-r from-sky-700/60 via-emerald-400/60 to-yellow-300/60">
         <div className="flex w-full max-w-md mx-auto gap-3 mb-4">
           <button
             onClick={() => {
@@ -442,8 +444,8 @@ function Todo({ setIsAuthenticated }) {
               setSelectedCompletedIds([]);
             }}
             className={`flex-1 py-2 rounded-full text-sm font-bold text-center ${activeTab === "todo"
-                ? "bg-violet-800 text-white"
-                : "bg-white/60 text-black"
+              ? "bg-violet-800 text-white"
+              : "bg-white/60 text-black"
               }`}
           >
             Todo
@@ -454,8 +456,8 @@ function Todo({ setIsAuthenticated }) {
               setSelectedTodoIds([]);
             }}
             className={`flex-1 py-2 rounded-full text-sm font-bold text-center ${activeTab === "completed"
-                ? "bg-violet-800 text-white"
-                : "bg-white/60 text-black"
+              ? "bg-violet-800 text-white"
+              : "bg-white/60 text-black"
               }`}
           >
             Completed Todo
@@ -465,7 +467,7 @@ function Todo({ setIsAuthenticated }) {
         {/* ONLY SHOW HEADING + INPUT WHEN ON TODO TAB */}
         {activeTab === "todo" && (
           <>
-            <h1 className="font-bold text-center text-2xl md:text-4xl">
+            <h1 className="font-bold text-center text-xl sm:text-2xl md:text-4xl">
               iTask - Manage your todo at one place
             </h1>
 
@@ -474,7 +476,7 @@ function Todo({ setIsAuthenticated }) {
               <h2 className="text-lg font-bold">
                 {editId ? "Edit Todo" : "Add a Todo"}
               </h2>
-              <div className="flex flex-col md:flex-row gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="w-full">
                   <input
                     onChange={handleChange}
@@ -545,7 +547,7 @@ function Todo({ setIsAuthenticated }) {
                   key={item.id}
                   className="todo flex flex-col md:flex-row my-3 justify-between md:items-center bg-white/40 rounded-lg p-3"
                 >
-                  <div className="flex gap-3 items-start md:items-center">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                     <input
                       type="checkbox"
                       checked={selectedTodoIds.includes(item.id)}
@@ -617,7 +619,7 @@ function Todo({ setIsAuthenticated }) {
               {completedTodos.map((item) => (
                 <div
                   key={item.id}
-                  className="todo flex flex-col md:flex-row my-3 justify-between md:items-center bg-white/40 rounded-lg p-3"
+                  className="todo flex flex-col md:flex-row gap-3 my-3 justify-between md:items-center bg-white/40 rounded-lg p-3"
                 >
                   <div className="flex gap-3 items-start md:items-center">
                     <input
@@ -634,7 +636,7 @@ function Todo({ setIsAuthenticated }) {
                         : ""}
                     </div>
                   </div>
-                  <div className="buttons flex mt-3 md:mt-0">
+                  <div className="buttons flex flex-wrap gap-2 mt-3 md:mt-0">
                     <button
                       onClick={() =>
                         openConfirm(
