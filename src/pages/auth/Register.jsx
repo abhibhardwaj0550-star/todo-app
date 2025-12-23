@@ -9,6 +9,8 @@ export default function Register({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
   const strongPasswordRegex =
@@ -16,33 +18,32 @@ export default function Register({ setIsAuthenticated }) {
 
   const onSubmit = async (values) => {
     try {
-      const response = await axios.post(`${apiBaseUrl}/auth/signup`, values);
-      console.log("Register response:", response.data);
+      setIsLoading(true);
 
-      const token = response.data?.token;
-      const name = response.data?.user?.name || values.name; // store the registered name
+      const response = await axios.post(`${apiBaseUrl}/auth/signup`, values);
+      const data = response.data;
+
+      const token = data?.token;
+      const name = data?.user?.name || values.name;
 
       if (token) {
         localStorage.setItem("token", token);
-        localStorage.setItem("username", name); // 🔥 store username
-        if (setIsAuthenticated) setIsAuthenticated(true);
+        localStorage.setItem("username", name);
+        setIsAuthenticated?.(true);
       }
 
-      toast.success(
-        response.data?.message || "User registered successfully!"
-      );
-
+      toast.success(data?.message || "User registered successfully!");
       navigate("/home");
     } catch (error) {
-      console.error("Register error:", error.response?.data || error.message);
       const msg =
         error.response?.data?.message ||
         error.message ||
         "Registration failed";
       toast.error(msg);
+    } finally {
+      setIsLoading(false);
     }
   };
-
 
   return (
     <Auth
@@ -52,13 +53,15 @@ export default function Register({ setIsAuthenticated }) {
       linkTo="/login"
       showPassword={showPassword}
       toggleShowPassword={toggleShowPassword}
+      onSubmit={onSubmit}
+      isLoading={isLoading}   // ✅ IMPORTANT
       fields={[
         {
           label: "Name",
           type: "text",
           name: "name",
           placeholder: "Enter name",
-                 validate: (value) => {
+          validate: (value) => {
             const nameRegex = /^[A-Za-z\s]+$/;
 
             if (value.length < 4) {
@@ -76,7 +79,7 @@ export default function Register({ setIsAuthenticated }) {
           label: "Email",
           type: "email",
           name: "email",
-          placeholder: " Enter your Email address",
+          placeholder: "Enter your Email address",
         },
         {
           label: "Password",
@@ -91,7 +94,6 @@ export default function Register({ setIsAuthenticated }) {
           },
         },
       ]}
-      onSubmit={onSubmit}
     />
   );
 }

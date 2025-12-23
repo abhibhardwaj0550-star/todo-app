@@ -10,7 +10,8 @@ export default function Auth({
   onSubmit,
   showPassword,
   toggleShowPassword,
-  children, 
+  children,
+  isLoading, // ✅ NEW
 }) {
   const [values, setValues] = useState(
     fields.reduce((acc, f) => ({ ...acc, [f.name]: "" }), {})
@@ -52,11 +53,14 @@ export default function Auth({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (isLoading) return; // ✅ prevent double submit
+
     const newErrors = validateAll();
     if (Object.keys(newErrors).length > 0) {
       setFormError("Please fix the errors above.");
       return;
     }
+
     setFormError(null);
     onSubmit(values);
   };
@@ -72,24 +76,38 @@ export default function Auth({
 
             return (
               <div key={f.name}>
-                <label className="text-sm font-medium text-slate-600">{f.label}</label>
+                <label className="text-sm font-medium text-slate-600">
+                  {f.label}
+                </label>
 
                 <div className="relative">
                   <input
-                    type={isPassword ? (showPassword ? "text" : "password") : f.type}
+                    type={
+                      isPassword
+                        ? showPassword
+                          ? "text"
+                          : "password"
+                        : f.type
+                    }
                     name={f.name}
                     placeholder={f.placeholder}
                     value={values[f.name] || ""}
                     onChange={handleChange}
-                    className={`w-full px-4 py-2 mt-1 rounded-lg border outline-none ${errors[f.name]
-                        ? "border-red-500 focus:ring-2 focus:ring-red-400"
-                        : "border-slate-300 focus:ring-2 focus:ring-indigo-400"
-                      } ${isPassword ? "pr-10" : ""}`}
+                    disabled={isLoading}
+                    className={`w-full px-4 py-2 mt-1 rounded-lg border outline-none
+                      ${
+                        errors[f.name]
+                          ? "border-red-500 focus:ring-2 focus:ring-red-400"
+                          : "border-slate-300 focus:ring-2 focus:ring-indigo-400"
+                      }
+                      ${isPassword ? "pr-10" : ""}
+                      ${isLoading ? "opacity-60 cursor-not-allowed" : ""}
+                    `}
                   />
 
                   {isPassword && (
                     <span
-                      onClick={toggleShowPassword}
+                      onClick={!isLoading ? toggleShowPassword : undefined}
                       className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-slate-500"
                     >
                       {showPassword ? "😳" : "😵‍💫"}
@@ -98,7 +116,9 @@ export default function Auth({
                 </div>
 
                 {errors[f.name] && (
-                  <p className="text-xs text-red-500 mt-1">{errors[f.name]}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors[f.name]}
+                  </p>
                 )}
               </div>
             );
@@ -108,15 +128,29 @@ export default function Auth({
             <p className="text-sm text-red-600 text-center">{formError}</p>
           )}
 
+          {/* 🔥 SUBMIT BUTTON WITH LOADER */}
           <button
             type="submit"
-            className="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:brightness-110"
+            disabled={isLoading}
+            className={`w-full py-2 font-semibold rounded-lg flex items-center justify-center gap-2
+              ${
+                isLoading
+                  ? "bg-indigo-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:brightness-110"
+              } text-white`}
           >
-            {buttonText}
+            {isLoading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Logging in...
+              </>
+            ) : (
+              buttonText
+            )}
           </button>
         </form>
 
-        {/* Render children like Google login button */}
+        {/* Google / extra buttons */}
         {children && <div className="mt-4">{children}</div>}
 
         {linkText && linkTo && (
@@ -131,4 +165,3 @@ export default function Auth({
     </div>
   );
 }
-

@@ -11,13 +11,18 @@ export default function Login({ setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
   const strongPasswordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
+  // 🔹 Normal Login
   const onSubmit = async (values) => {
     try {
+      setIsLoading(true);
+
       const res = await axios.post(`${apiBaseUrl}/auth/login`, values);
       const data = res.data;
 
@@ -25,52 +30,53 @@ export default function Login({ setIsAuthenticated }) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.user.role);
         localStorage.setItem("username", data.user.name);
-        setIsAuthenticated?.(true);
 
-        toast.success(data.message || "Login successful");
+        setIsAuthenticated?.(true);
+        toast.success("Login successful");
+
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else {
         toast.error(data?.message || "Login failed");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || "Login error");
+      toast.error(err.response?.data?.message || "Login error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // 🔹 Google Login
   const handleGoogleLogin = async () => {
     try {
+      setIsLoading(true);
+
       const result = await signInWithPopup(auth, provider);
-
-      if (!result.user) {
-        throw new Error("No user returned from Google popup");
-      }
-
       const idToken = await result.user.getIdToken(true);
-      console.log("ID Token:", idToken); 
 
-      const res = await axios.post(`${apiBaseUrl}/auth/google-login`, { idToken });
-      console.log("Backend response:", res.data); // Debug: see exact response
+      const res = await axios.post(`${apiBaseUrl}/auth/google-login`, {
+        idToken,
+      });
 
       const data = res.data;
 
-      // 4️⃣ Handle successful login
-      if (data?.user && data?.token) {
+      if (data?.token && data?.user) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", data.user.role);
         localStorage.setItem("username", data.user.name);
-        setIsAuthenticated?.(true);
 
+        setIsAuthenticated?.(true);
         toast.success("Logged in with Google");
+
         navigate(data.user.role === "admin" ? "/admin" : "/home");
       } else {
-        toast.error("Google login failed: Invalid backend response");
+        toast.error("Google login failed");
       }
     } catch (err) {
-      console.error("Google login error:", err.response?.data || err.message);
-      toast.error(`Google login failed: ${err.response?.data?.message || err.message}`);
+      toast.error(err.response?.data?.message || "Google login error");
+    } finally {
+      setIsLoading(false);
     }
   };
-
 
   return (
     <Auth
@@ -81,33 +87,40 @@ export default function Login({ setIsAuthenticated }) {
       showPassword={showPassword}
       toggleShowPassword={toggleShowPassword}
       onSubmit={onSubmit}
+      isLoading={isLoading}
       fields={[
-        { label: "Email", type: "email", name: "email", placeholder: "Enter email" },
+        {
+          label: "Email",
+          type: "email",
+          name: "email",
+          placeholder: "Enter email",
+        },
         {
           label: "Password",
-          type: "password", // ✅ must be password
+          type: "password",
           name: "password",
           placeholder: "Enter password",
-          validate: (value) => {
-            if (!strongPasswordRegex.test(value)) {
-              return "Password must be 8+ chars with uppercase, lowercase, number & special";
-            }
-            return null;
-          },
+          validate: (value) =>
+            strongPasswordRegex.test(value)
+              ? null
+              : "Password must be strong",
         },
       ]}
     >
-      {/* Google Login Button */}
-      <div className="flex justify-center mt-4">
-        <button
-          onClick={handleGoogleLogin}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white text-gray-700 border rounded-lg shadow hover:shadow-lg hover:scale-[1.02] transition duration-200"
-        >
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-          Login with Google
-        </button>
-      </div>
-
+      {/* Google Button */}
+      <button
+        type="button"
+        disabled={isLoading}
+        onClick={handleGoogleLogin}
+        className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2 border rounded-lg disabled:opacity-60"
+      >
+        <img
+          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+          className="w-5 h-5"
+          alt="Google"
+        />
+        Continue with Google
+      </button>
     </Auth>
   );
 }
